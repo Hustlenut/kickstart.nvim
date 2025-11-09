@@ -7,8 +7,8 @@
 set -euo pipefail
 
 IMAGE="${IMAGE:-hustlenut/nvim-docker:latest}"
-NVIM_APPNAME="${NVIM_APPNAME:-nvim-docker}"   # your isolated app name (config lives in ~/.config/kickstart)
-HOST_PWD="$(pwd -P)"                        # physical path (no symlinks) for venv shebang compatibility
+NVIM_APPNAME="${NVIM_APPNAME:-nvim-docker}"
+HOST_PWD="$(pwd -P)"  # physical path (no symlinks) for venv shebang compatibility
 
 # Host persistence dirs
 mkdir -p "$HOME/.config/$NVIM_APPNAME" \
@@ -17,17 +17,19 @@ mkdir -p "$HOME/.config/$NVIM_APPNAME" \
 
 # Bootstrap kickstart.nvim on host if missing
 if [ ! -f "$HOME/.config/$NVIM_APPNAME/init.lua" ] && [ ! -d "$HOME/.config/$NVIM_APPNAME/.git" ]; then
-  git clone https://github.com/nvim-lua/kickstart.nvim "$HOME/.config/$NVIM_APPNAME"
+  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/$NVIM_APPNAME"
 fi
 
 exec docker run --rm -it \
+  --add-host=host.docker.internal:host-gateway \
   -u "$(id -u):$(id -g)" \
+  -e TERM=xterm-256color \
   -e NVIM_APPNAME="$NVIM_APPNAME" \
   -e XDG_CONFIG_HOME=/nvim/config \
   -e XDG_DATA_HOME=/nvim/data \
   -e XDG_CACHE_HOME=/nvim/cache \
   -v "$HOST_PWD":"$HOST_PWD" -w "$HOST_PWD" \
-  -v "$HOME/.config/$NVIM_APPNAME":/nvim/config \
-  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data \
-  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache \
-  "$IMAGE" nvim "${@:-.}"
+  -v "$HOME/.config/$NVIM_APPNAME":/nvim/config/$NVIM_APPNAME \
+  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data/$NVIM_APPNAME \
+  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache/$NVIM_APPNAME \
+  "$IMAGE" "${@:-.}"

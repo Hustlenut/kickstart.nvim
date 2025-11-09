@@ -17,7 +17,7 @@ mkdir -p "$HOME/.config/$NVIM_APPNAME" \
 
 # Bootstrap kickstart.nvim on host if missing
 if [ ! -f "$HOME/.config/$NVIM_APPNAME/init.lua" ] && [ ! -d "$HOME/.config/$NVIM_APPNAME/.git" ]; then
-  git clone https://github.com/nvim-lua/kickstart.nvim "$HOME/.config/$NVIM_APPNAME"
+  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/$NVIM_APPNAME"
 fi
 
 exec podman run --rm -it \
