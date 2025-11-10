@@ -23,17 +23,11 @@ fi
 exec docker run --rm -it \
   --network=host \
   -u "$(id -u):$(id -g)" \
-  -e TERM=xterm-256color \
   -e NVIM_APPNAME="$NVIM_APPNAME" \
   -e XDG_CONFIG_HOME=/nvim/config \
   -e XDG_DATA_HOME=/nvim/data \
   -e XDG_CACHE_HOME=/nvim/cache \
-  -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
-  -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
-  -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-  -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
-  -v "$HOST_PWD":"$HOST_PWD" -w "$HOST_PWD" \
+  -e HOME=/nvim/home \
+  -v "$HOST_PWD:$HOST_PWD" -w "$HOST_PWD" \
   -v "$HOME/.config/$NVIM_APPNAME":/nvim/config/$NVIM_APPNAME \
-  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data/$NVIM_APPNAME \
-  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache/$NVIM_APPNAME \
-  "$IMAGE" "${@:-.}"
+  hustlenut/nvim-docker:20251110 "${@:-.}"
