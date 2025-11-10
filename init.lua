@@ -654,9 +654,6 @@ require('lazy').setup({
           end,
         },
       }
-      -- Host is fixed in the module to 127.0.0.1; you can still override the port here.
-      vim.g.pylsp_remote_host = vim.env.PYLSP_HOST or '127.0.0.1'
-      vim.g.pylsp_remote_port = tonumber(vim.env.PYLSP_PORT or '2087') or 2087
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -664,54 +661,7 @@ require('lazy').setup({
       --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = require('blink.cmp').get_lsp_capabilities()
       -- ===== Load pylsp-remote integration (TCP to host) =====
-      do
-        local lspconfig = require 'lspconfig'
-        local configs = require 'lspconfig.configs'
-        local util = require 'lspconfig.util'
-
-        -- capture once at startup; change env before launching nvim if you need
-        local host = vim.g.pylsp_remote_host or '127.0.0.1'
-        local port = tonumber(vim.g.pylsp_remote_port or 2087) or 2087
-
-        -- IMPORTANT: cmd must be the RPC transport *object*, not a function.
-        local transport = vim.lsp.rpc.connect(host, port)
-
-        if not configs.pylsp_remote then
-          configs.pylsp_remote = {
-            default_config = {
-              name = 'pylsp_remote',
-              cmd = transport,
-              filetypes = { 'python' },
-              root_dir = function(fname)
-                -- keep it simple; git repo root if present, else file dir
-                return util.find_git_ancestor(fname) or util.path.dirname(fname)
-              end,
-            },
-          }
-        end
-
-        lspconfig.pylsp_remote.setup {
-          capabilities = capabilities,
-        }
-
-        -- Auto-start on Python buffers (idempotent + deferred to avoid fast-event issues)
-        local grp = vim.api.nvim_create_augroup('pylsp-remote-autostart', { clear = true })
-        vim.api.nvim_create_autocmd('FileType', {
-          group = grp,
-          pattern = 'python',
-          callback = function()
-            vim.defer_fn(function()
-              local bufnr = vim.api.nvim_get_current_buf()
-              for _, c in ipairs(vim.lsp.get_clients { bufnr = bufnr }) do
-                if c.name == 'pylsp_remote' then
-                  return
-                end
-              end
-              pcall(vim.cmd, 'LspStart pylsp_remote')
-            end, 0)
-          end,
-        })
-      end
+      require('custom.pylsp_remote').setup()
 
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
