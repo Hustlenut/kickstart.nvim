@@ -654,6 +654,8 @@ require('lazy').setup({
           end,
         },
       }
+      vim.g.pylsp_remote_host = vim.env.PYLSP_HOST or '127.0.0.1'
+      vim.g.pylsp_remote_port = tonumber(vim.env.PYLSP_PORT or '2087') or 2087
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -661,9 +663,8 @@ require('lazy').setup({
       --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = require('blink.cmp').get_lsp_capabilities()
       -- ===== Load pylsp-remote integration (TCP to host) =====
-      require('custom.pylsp_remote').setup()
-
-      -- Enable the following language servers
+      require('custom.pylsp_remote').setup(capabilities)
+      -- Enable te following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
       --  Add any additional override configuration in the following tables. Available keys are:

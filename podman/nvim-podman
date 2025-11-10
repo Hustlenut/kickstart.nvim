@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# NOT TESTED!
 # Launch Neovim (kickstart.nvim) inside a Debian-slim container using Podman.
 # - Rootless with --userns=keep-id so files are owned by you on host
 # - SELinux labels (:Z) for Fedora/RHEL

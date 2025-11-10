@@ -1,9 +1,18 @@
-## Reasoning behind debian instead of alpine
+## Introduction
+This repo is built on top of kickstart.nvim, and aims to slap it into a Docker container.
+
+## Prerequisites
+- Docker
+
+## Supported on
+- Hyprland and Arch Linux
+
+### Reasoning behind using Debian image instead of Alpine
 Most prebuilt Python wheels on PyPI are compiled against glibc,
 the GNU C standard library used by Debian/Ubuntu/Red Hat, etc.
 Alpine Linux uses musl instead of glibc, so glibc-targeted wheels won’t load on Alpine
 
-X11 (i3/Xorg session)
+### Clipboard setup with X11 (i3/Xorg session)
 
 You need the X11 Unix socket and permission:
 ```
