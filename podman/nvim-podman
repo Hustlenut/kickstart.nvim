@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Launch Neovim (kickstart.nvim) inside a Debian-slim container using Podman.
+# - Rootless with --userns=keep-id so files are owned by you on host
+# - SELinux labels (:Z) for Fedora/RHEL
+# - Username-agnostic XDG_* mounts
+# - Path parity for Python .venv
+
+set -euo pipefail
+
+IMAGE="${IMAGE:-hustlenut/nvim-podman:latest}"
+NVIM_APPNAME="${NVIM_APPNAME:-nvim-podman}"
+HOST_PWD="$(pwd -P)"
+
+mkdir -p "$HOME/.config/$NVIM_APPNAME" \
+         "$HOME/.local/share/$NVIM_APPNAME" \
+         "$HOME/.cache/$NVIM_APPNAME"
+
+# Bootstrap kickstart.nvim on host if missing
+if [ ! -f "$HOME/.config/$NVIM_APPNAME/init.lua" ] && [ ! -d "$HOME/.config/$NVIM_APPNAME/.git" ]; then
+  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/$NVIM_APPNAME"
+fi
+
+exec podman run --rm -it \
+  --userns=keep-id \
+  -e NVIM_APPNAME="$NVIM_APPNAME" \
+  -e XDG_CONFIG_HOME=/nvim/config \
+  -e XDG_DATA_HOME=/nvim/data \
+  -e XDG_CACHE_HOME=/nvim/cache \
+  -v "$HOST_PWD":"$HOST_PWD":Z -w "$HOST_PWD" \
+  -v "$HOME/.config/$NVIM_APPNAME":/nvim/config:Z \
+  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data:Z \
+  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache:Z \
+  "$IMAGE" nvim "${@:-.}"
