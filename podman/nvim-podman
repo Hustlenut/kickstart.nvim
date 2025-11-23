@@ -34,11 +34,22 @@ else
 fi
 
 # Resolve abosulte path and get workdir
-path="$1"
-abs_path="$(realpath -e "$path")"
-WORKDIR="$(dirname "$abs_path")"
+if [ -z "${1-}" ]; then
+  # No argument: unset variables and do not mount or set workdir
+  abs_path=""
+  WORKDIR=""
+else
+  path="$1"
+  abs_path="$(realpath -e "$path")"
+  WORKDIR="$(dirname "$abs_path")"
+fi
 
-echo "Absolute path: $abs_path"
+# Compose podman volume and working directory options dynamically
+if [ -n "$WORKDIR" ]; then
+  WORKDIR_OPTIONS=(-v "$WORKDIR:$WORKDIR" -w "$WORKDIR")
+else
+  WORKDIR_OPTIONS=()
+fi
 
 # Resolve display compositor
 if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
@@ -64,7 +75,7 @@ exec podman run --rm -it \
   -e DISPLAY_VAR \
   -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
   -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
-  -v "$WORKDIR":"$WORKDIR" -w "$WORKDIR" \
+  "${WORKDIR_OPTIONS[@]}" \
   -v "$HOME/.config/$NVIM_APPNAME":/nvim/config/$NVIM_APPNAME \
   -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data/$NVIM_APPNAME \
   -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache/$NVIM_APPNAME \
