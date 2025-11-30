@@ -3,7 +3,6 @@ FROM debian:bookworm-slim AS bootstrap
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Version pins (update these in one place)
 ARG NVIM_VERSION=0.11.5
 ARG NODE_VERSION=24.11.0
 ARG GO_VERSION=1.23.11
@@ -52,47 +51,40 @@ RUN set -eux; \
   install -Dm755 /tmp/rg/usr/bin/rg /opt/rg; \
   rm -rf /tmp/rg.deb /tmp/rg
 
-# ---------- STAGE 2: minimal runtime image ----------
+# ---------- STAGE 2: runtime image (ROOT USER) ----------
 FROM debian:bookworm-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG USERNAME=dev
-ARG UID=1000
-ARG GID=1000
 
-# Only the bare runtime libs; no compilers.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates curl git bash perl python3 python3-pip \
-      xz-utils tar unzip wget\
+      xz-utils tar unzip wget \
       build-essential cmake pkg-config \
       wl-clipboard xclip \
  && update-ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy in the pinned toolchains and LSP binaries from the bootstrap stage.
 COPY --from=bootstrap /opt/nvim /opt/nvim
 COPY --from=bootstrap /opt/node /opt/node
 COPY --from=bootstrap /opt/go /opt/go
 COPY --from=bootstrap /opt/rg /usr/local/bin/rg
 
-# Paths
+# Following is intended to be shared with host user
 ENV PATH=/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
-ENV GOPATH=/home/${USERNAME}/go
+ENV GOPATH=/work/go
+ENV XDG_CACHE_HOME=/work/.cache
+ENV XDG_CONFIG_HOME=/work/.config
+ENV XDG_DATA_HOME=/work/.local/share
+ENV XDG_STATE_HOME=/work/.local/state
+ENV GOCACHE=/work/.cache/go-build
 
-# User
-RUN groupadd -g ${GID} ${USERNAME} \
- && useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USERNAME}
+# Create shared workspace structure which has to map to the launch script!
+RUN mkdir -p /work/go /work/.cache/go-build \
+    /work/.config/nvim/work/.local/share/nvim /work/.local/state/nvim \
+ && chmod -R 777 /work
 
-ENV XDG_CACHE_HOME=/home/${USERNAME}/.cache
-ENV GOCACHE=/home/${USERNAME}/.cache/go-build
-RUN mkdir -p /home/${USERNAME}/.cache/go-build && chown -R ${UID}:${GID} /home/${USERNAME}/.cache
-
-USER ${USERNAME}
-ENV USER=${USERNAME}
-ENV HOME=/home/${USERNAME}
 WORKDIR /work
-VOLUME ["/work"]
 
 # Default entrypoint
 ENTRYPOINT ["nvim"]

@@ -5,27 +5,26 @@
 set -euo pipefail
 
 IMAGE="${IMAGE:-localhost/nvim-podman:latest}"
-NVIM_APPNAME="${NVIM_APPNAME:-nvim-podman}"
 
-# Host persistence dirs
-mkdir -p "$HOME/.config/$NVIM_APPNAME" \
-         "$HOME/.local/share/$NVIM_APPNAME" \
-         "$HOME/.cache/$NVIM_APPNAME"
+# Host persistence dirs needs to match setup Dockerfile
+mkdir -p "$HOME/.config/nvim" \
+         "$HOME/.local/share/nvim" \
+         "$HOME/.cache/nvim"
 
 # Bootstrap kickstart.nvim on host if missing
-if [ ! -f "$HOME/.config/$NVIM_APPNAME/init.lua" ] && [ ! -d "$HOME/.config/$NVIM_APPNAME/.git" ]; then
-  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/$NVIM_APPNAME"
+if [ ! -f "$HOME/.config/nvim/init.lua" ] && [ ! -d "$HOME/.config/nvim/.git" ]; then
+  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/nvim"
 fi
 
-# Resolve basenames from argument
+# Resolve basenames/file names from argument
 if [ $# -gt 0 ]; then
   args=()
   for path in "$@"; do
-    # Step 1: Create file if missing (do NOT rely on realpath yet)
+    # Create file if missing
     if [ ! -e "$path" ]; then
       touch "$path"
     fi
-    # Step 2: Now resolve absolute path safely
+    # Resolve absolute path
     abs_path="$(realpath "$path")"
     args+=( "$(basename "$abs_path")" )
   done
@@ -35,7 +34,7 @@ fi
 
 # Resolve abosulte path and get workdir
 if [ -z "${1-}" ]; then
-  # No argument: unset variables and do not mount or set workdir
+  # No argument -> unset variables and do not mount or set workdir
   abs_path=""
   WORKDIR=""
 else
@@ -52,13 +51,13 @@ else
 fi
 
 # Resolve display compositor
-if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+if [ "${XDG_SESSION_TYPE:-}" = "wayland" ]; then
+  # use the existing WAYLAND_DISPLAY, fallback to wayland-0 if missing
+  : "${WAYLAND_DISPLAY:=wayland-0}"
   DISPLAY_VAR="WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
-elif [ "$XDG_SESSION_TYPE" = "x11" ]; then
+elif [ "${XDG_SESSION_TYPE:-}" = "x11" ]; then
   DISPLAY_VAR="DISPLAY=$DISPLAY"
 else
-  # Fallback or unknown
-  echo "XDG session type not found"
   DISPLAY_VAR=""
 fi
 
@@ -67,16 +66,15 @@ exec podman run --rm -it \
   --userns=keep-id \
   -u "$(id -u):$(id -g)" \
   -e TERM=xterm-256color \
-  -e NVIM_APPNAME="$NVIM_APPNAME" \
   -e XDG_CONFIG_HOME=/nvim/config \
   -e XDG_DATA_HOME=/nvim/data \
   -e XDG_CACHE_HOME=/nvim/cache \
   -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
-  -e DISPLAY_VAR \
+  -e $DISPLAY_VAR \
   -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
   -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
   "${WORKDIR_OPTIONS[@]}" \
-  -v "$HOME/.config/$NVIM_APPNAME":/nvim/config/$NVIM_APPNAME \
-  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data/$NVIM_APPNAME \
-  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache/$NVIM_APPNAME \
+  -v "$HOME/.config/nvim":/nvim/config/nvim \
+  -v "$HOME/.local/share/nvim:/nvim/data/nvim \
+  -v "$HOME/.cache/nvim":/nvim/cache/nvim \
   "$IMAGE" "${args[@]}"
