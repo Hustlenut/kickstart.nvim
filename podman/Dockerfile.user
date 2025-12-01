@@ -21,4 +21,4 @@ ENV HOME=/home/${USERNAME}
 ENV USER=${USERNAME}
 WORKDIR /home/${USERNAME}/workspace
 
-HEALTHCHECK CMD nvim --headless -c 'checkhealth' -c 'qa!' || exit 1
+# HEALTHCHECK CMD nvim --headless -c 'checkhealth' -c 'qa!' || exit 1

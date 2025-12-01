@@ -81,10 +81,11 @@ ENV GOCACHE=/work/.cache/go-build
 
 # Create shared workspace structure which has to map to the launch script!
 RUN mkdir -p /work/go /work/.cache/go-build \
-    /work/.config/nvim/work/.local/share/nvim /work/.local/state/nvim \
+    /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim \
  && chmod -R 777 /work
+
+RUN git clone https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 
 WORKDIR /work
 
-# Default entrypoint
 ENTRYPOINT ["nvim"]

@@ -11,11 +11,6 @@ mkdir -p "$HOME/.config/nvim" \
          "$HOME/.local/share/nvim" \
          "$HOME/.cache/nvim"
 
-# Bootstrap kickstart.nvim on host if missing
-if [ ! -f "$HOME/.config/nvim/init.lua" ] && [ ! -d "$HOME/.config/nvim/.git" ]; then
-  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/nvim"
-fi
-
 # Resolve basenames/file names from argument
 if [ $# -gt 0 ]; then
   args=()
@@ -66,15 +61,12 @@ exec podman run --rm -it \
   --userns=keep-id \
   -u "$(id -u):$(id -g)" \
   -e TERM=xterm-256color \
-  -e XDG_CONFIG_HOME=/nvim/config \
-  -e XDG_DATA_HOME=/nvim/data \
-  -e XDG_CACHE_HOME=/nvim/cache \
   -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
   -e $DISPLAY_VAR \
   -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
   -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
   "${WORKDIR_OPTIONS[@]}" \
-  -v "$HOME/.config/nvim":/nvim/config/nvim \
-  -v "$HOME/.local/share/nvim:/nvim/data/nvim \
-  -v "$HOME/.cache/nvim":/nvim/cache/nvim \
+  -v "$HOME/.config/nvim:/work/.config/nvim" \
+  -v "$HOME/.local/share/nvim:/work/.local/share/nvim" \
+  -v "$HOME/.cache/nvim:/work/.cache/nvim" \
   "$IMAGE" "${args[@]}"
