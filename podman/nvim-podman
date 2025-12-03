@@ -4,7 +4,13 @@
 
 set -euo pipefail
 
-IMAGE="${IMAGE:-localhost/nvim-podman:latest}"
+PODMAN_BIN="$(command -v podman || true)"
+if [ -z "$PODMAN_BIN" ]; then
+  echo "podman not found" >&2
+  exit 1
+fi
+
+IMAGE="${IMAGE:-localhost/nvim-podman:${USER}}"
 
 # Host persistence dirs needs to match setup Dockerfile
 mkdir -p "$HOME/.config/nvim" \
@@ -56,17 +62,18 @@ else
   DISPLAY_VAR=""
 fi
 
-exec podman run --rm -it \
+DISPLAY_ARGS=()
+if [ -n "${DISPLAY_VAR:-}" ]; then
+  DISPLAY_ARGS+=( -e "$DISPLAY_VAR" )
+fi
+
+exec "$PODMAN_BIN" run --rm -it \
   --network=host \
-  --userns=keep-id \
-  -u "$(id -u):$(id -g)" \
   -e TERM=xterm-256color \
   -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
-  -e $DISPLAY_VAR \
   -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-  -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
+  -v "$XDG_RUNTIME_DIR_HOST:/tmp/xdgruntime" \
+  "${DISPLAY_ARGS[@]}" \
   "${WORKDIR_OPTIONS[@]}" \
   -v "$HOME/.config/nvim:/work/.config/nvim" \
-  -v "$HOME/.local/share/nvim:/work/.local/share/nvim" \
-  -v "$HOME/.cache/nvim:/work/.cache/nvim" \
   "$IMAGE" "${args[@]}"
