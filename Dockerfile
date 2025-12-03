@@ -10,7 +10,7 @@ ARG RIPGREP_VERSION=15.1.0
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      ca-certificates curl xz-utils tar unzip git bash perl gcc make \
+      ca-certificates curl xz-utils tar unzip git bash perl gcc make build-essential \
  && update-ca-certificates
 
 WORKDIR /opt/bootstrap
@@ -43,6 +43,10 @@ RUN curl -fsSL -o go.tar.gz \
  && rm -f go.tar.gz
 ENV PATH=/opt/go/bin:$PATH
 
+# --- Rust + Cargo ---
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH=/root/.cargo/bin:$PATH
+
 # --- ripgrep (prebuilt) ---
 RUN set -eux; \
   curl -fsSL -o /tmp/rg.deb \
@@ -65,13 +69,17 @@ RUN apt-get update \
  && update-ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
+# Copy toolchains from bootstrap
 COPY --from=bootstrap /opt/nvim /opt/nvim
 COPY --from=bootstrap /opt/node /opt/node
 COPY --from=bootstrap /opt/go /opt/go
 COPY --from=bootstrap /opt/rg /usr/local/bin/rg
 
+# Copy Rust/Cargo
+COPY --from=bootstrap /root/.cargo /root/.cargo
+ENV PATH=/root/.cargo/bin:/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
+
 # Following is intended to be shared with host user
-ENV PATH=/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
 ENV GOPATH=/work/go
 ENV XDG_CACHE_HOME=/work/.cache
 ENV XDG_CONFIG_HOME=/work/.config
@@ -79,11 +87,11 @@ ENV XDG_DATA_HOME=/work/.local/share
 ENV XDG_STATE_HOME=/work/.local/state
 ENV GOCACHE=/work/.cache/go-build
 
-# Create shared workspace structure which has to map to the launch script!
+# Create shared workspace structure
 RUN mkdir -p /work/go /work/.cache/go-build \
     /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim \
  && chmod -R 777 /work \
- && chmod -R 755 /opt/nvim /opt/node /opt/go
+ && chmod -R 755 /opt/nvim /opt/node /opt/go /root/.cargo
 
 RUN git clone https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 

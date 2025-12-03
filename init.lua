@@ -692,6 +692,10 @@ require('lazy').setup({
         dockerls = {},
         docker_compose_language_service = {},
         bashls = {},
+        html = {},
+        cssls = {},
+        yamlls = {},
+        fish = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
