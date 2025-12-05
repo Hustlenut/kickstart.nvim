@@ -1,4 +1,4 @@
-# ---------- STAGE 1: fetch toolchains & language servers ----------
+# ---------- STAGE 1: fetch toolchains ----------
 FROM debian:bookworm-slim AS bootstrap
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -15,7 +15,7 @@ RUN apt-get update \
 
 WORKDIR /opt/bootstrap
 
-# --- Neovim (official linux tarball) ---
+# --- Neovim ---
 RUN set -eux; \
   for f in nvim-linux64.tar.gz nvim-linux-x86_64.tar.gz; do \
     url="https://github.com/neovim/neovim/releases/download/v${NVIM_VERSION}/$f"; \
@@ -26,7 +26,7 @@ RUN set -eux; \
   rm -f /tmp/nvim.tgz; \
   /opt/nvim/bin/nvim --version
 
-# --- Node.js (official linux tarball) ---
+# --- Node.js ---
 RUN curl -fsSL -o node.tar.xz \
       https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
  && tar -xJf node.tar.xz \
@@ -34,7 +34,7 @@ RUN curl -fsSL -o node.tar.xz \
  && rm -f node.tar.xz
 ENV PATH=/opt/node/bin:$PATH
 
-# --- Go (official linux tarball) ---
+# --- Go ---
 RUN curl -fsSL -o go.tar.gz \
       https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
  && tar -C /opt -xzf go.tar.gz \
@@ -69,13 +69,11 @@ RUN apt-get update \
  && update-ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy toolchains from bootstrap
 COPY --from=bootstrap /opt/nvim /opt/nvim
 COPY --from=bootstrap /opt/node /opt/node
 COPY --from=bootstrap /opt/go /opt/go
 COPY --from=bootstrap /opt/rg /usr/local/bin/rg
 
-# Copy Rust/Cargo
 COPY --from=bootstrap /root/.cargo /root/.cargo
 ENV PATH=/root/.cargo/bin:/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
 
