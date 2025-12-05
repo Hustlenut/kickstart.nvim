@@ -10,7 +10,7 @@ if [ -z "$PODMAN_BIN" ]; then
   exit 1
 fi
 
-IMAGE="${IMAGE:-localhost/nvim-podman:${USER}}"
+IMAGE="${IMAGE:-localhost/nvim-podman:0.0.1}"
 
 # Host persistence dirs needs to match setup Dockerfile
 mkdir -p "$HOME/.config/nvim" \
@@ -69,10 +69,10 @@ fi
 
 exec "$PODMAN_BIN" run --rm -it \
   --network=host \
+  -u "$(id -u):$(id -g)" \
   -e TERM=xterm-256color \
   -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
   -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-  -v "$XDG_RUNTIME_DIR_HOST:/tmp/xdgruntime" \
   "${DISPLAY_ARGS[@]}" \
   "${WORKDIR_OPTIONS[@]}" \
   -v "$HOME/.config/nvim:/work/.config/nvim" \
