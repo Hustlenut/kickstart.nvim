@@ -66,7 +66,7 @@ RUN apt-get update \
       xz-utils tar unzip wget \
       build-essential cmake pkg-config \
       wl-clipboard xclip \
-      libunwind8 \
+      binutils libunwind8 libstdc++6 \
  && update-ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
@@ -93,7 +93,6 @@ RUN git clone -b podman-with-lsp --single-branch https://github.com/Hustlenut/ki
 
 RUN nvim --headless \
     -c 'MasonToolsInstallSync' \
-    -c 'TSInstallSync c go perl python typescript yaml json toml dockerfile bash fish html css lua' \
     -c 'qa'
 
 RUN chmod -R 777 /work \
