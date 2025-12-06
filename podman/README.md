@@ -5,6 +5,7 @@
 - [Why Debian Instead of Alpine](#why-debian-instead-of-alpine)
 - [X11 (i3/Xorg Session)](#x11-i3xorg-session)
   - [One-Time Host Setup](#one-time-host-setup)
+- [Run with Python](#run-with-python)
 - [Usage](#usage)
 
 ---
@@ -35,13 +36,34 @@ xhost +si:localuser:$(id -un)
 
 This grants access to local socket connections for your current user.
 
+## Run with Python
+_Python LSP (pylsp) needs to analyze your exact project's Python interpreter and packages to provide accurate completions,
+diagnostics, and refactoring. A global/system pylsp can't accurately see your project's dependencies._
+
+To bypass this, this is intended to work with pylsp that is set in a 'venv'.
+Giving the developer the flexibility of changing versions and interpreters as well.
+### Usage:
+```
+# In another shell in your project, create a virtual environment:
+python<version> -m venv .venv
+
+# Activate venv:
+source .venv/bin/activate
+
+# Install pylsp:
+pip install "python-lsp-server[all]"
+
+# Run LSP
+./.venv/bin/pylsp --tcp --host 127.0.0.1 --port 2087
+```
+⚠️ For PYLSP to work, you need to open NVIM where the '.venv' directory is located.
 
 ## Installation and usage
 Install it on your machine:
 ```
 git clone https://github.com/Hustlenut/kickstart.nvim.git $HOME/.config/nvim-podman
 ```
-Add the nvim-podman script to you .bashrc:
+Symlink to /usr/bin/ or add the nvim-podman script to your .bashrc:
 ```
 nvim() {
     local script="$HOME/.config/nvim-podman/podman/nvim-podman"
@@ -52,3 +74,6 @@ Then run it on a file:
 ```
 nvim <file>
 ```
+
+## Caveats
+- Do not close NVIM or its container when you copy/paste. (Clipboard actions requires a running container)
