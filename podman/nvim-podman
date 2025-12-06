@@ -1,34 +1,79 @@
 #!/usr/bin/env bash
-# NOT TESTED!
-# Launch Neovim (kickstart.nvim) inside a Debian-slim container using Podman.
-# - Rootless with --userns=keep-id so files are owned by you on host
-# - SELinux labels (:Z) for Fedora/RHEL
-# - Username-agnostic XDG_* mounts
-# - Path parity for Python .venv
+# Launch Neovim (kickstart.nvim) inside a Debian-slim container using Docker.
+# - Persists config/plugins/cache on the HOST via XDG_* dirs
 
 set -euo pipefail
 
-IMAGE="${IMAGE:-hustlenut/nvim-podman:latest}"
-NVIM_APPNAME="${NVIM_APPNAME:-nvim-podman}"
-HOST_PWD="$(pwd -P)"
-
-mkdir -p "$HOME/.config/$NVIM_APPNAME" \
-         "$HOME/.local/share/$NVIM_APPNAME" \
-         "$HOME/.cache/$NVIM_APPNAME"
-
-# Bootstrap kickstart.nvim on host if missing
-if [ ! -f "$HOME/.config/$NVIM_APPNAME/init.lua" ] && [ ! -d "$HOME/.config/$NVIM_APPNAME/.git" ]; then
-  git clone https://github.com/Hustlenut/kickstart.nvim.git "$HOME/.config/$NVIM_APPNAME"
+PODMAN_BIN="$(command -v podman || true)"
+if [ -z "$PODMAN_BIN" ]; then
+  echo "podman not found" >&2
+  exit 1
 fi
 
-exec podman run --rm -it \
-  --userns=keep-id \
-  -e NVIM_APPNAME="$NVIM_APPNAME" \
-  -e XDG_CONFIG_HOME=/nvim/config \
-  -e XDG_DATA_HOME=/nvim/data \
-  -e XDG_CACHE_HOME=/nvim/cache \
-  -v "$HOST_PWD":"$HOST_PWD":Z -w "$HOST_PWD" \
-  -v "$HOME/.config/$NVIM_APPNAME":/nvim/config:Z \
-  -v "$HOME/.local/share/$NVIM_APPNAME":/nvim/data:Z \
-  -v "$HOME/.cache/$NVIM_APPNAME":/nvim/cache:Z \
-  "$IMAGE" nvim "${@:-.}"
+IMAGE="${IMAGE:-localhost/nvim-podman:0.1.1}"
+
+# Host persistence dirs needs to match setup Dockerfile
+mkdir -p "$HOME/.config/nvim" \
+         "$HOME/.local/share/nvim" \
+         "$HOME/.cache/nvim"
+
+# Resolve basenames/file names from argument
+if [ $# -gt 0 ]; then
+  args=()
+  for path in "$@"; do
+    # Create file if missing
+    if [ ! -e "$path" ]; then
+      touch "$path"
+    fi
+    # Resolve absolute path
+    abs_path="$(realpath "$path")"
+    args+=( "$(basename "$abs_path")" )
+  done
+else
+  args=(".")
+fi
+
+# Resolve abosulte path and get workdir
+if [ -z "${1-}" ]; then
+  # No argument -> unset variables and do not mount or set workdir
+  abs_path=""
+  WORKDIR=""
+else
+  path="$1"
+  abs_path="$(realpath -e "$path")"
+  WORKDIR="$(dirname "$abs_path")"
+fi
+
+# Compose podman volume and working directory options dynamically
+if [ -n "$WORKDIR" ]; then
+  WORKDIR_OPTIONS=(-v "$WORKDIR:$WORKDIR" -w "$WORKDIR")
+else
+  WORKDIR_OPTIONS=()
+fi
+
+# Resolve display compositor
+if [ "${XDG_SESSION_TYPE:-}" = "wayland" ]; then
+  # use the existing WAYLAND_DISPLAY, fallback to wayland-0 if missing
+  : "${WAYLAND_DISPLAY:=wayland-0}"
+  DISPLAY_VAR="WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+elif [ "${XDG_SESSION_TYPE:-}" = "x11" ]; then
+  DISPLAY_VAR="DISPLAY=$DISPLAY"
+else
+  DISPLAY_VAR=""
+fi
+
+DISPLAY_ARGS=()
+if [ -n "${DISPLAY_VAR:-}" ]; then
+  DISPLAY_ARGS+=( -e "$DISPLAY_VAR" )
+fi
+
+exec "$PODMAN_BIN" run --rm -it \
+  --network=host \
+  -e TERM=xterm-256color \
+  -e PYLSP_HOST=127.0.0.1 -e PYLSP_PORT=2087 \
+  -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
+  "${DISPLAY_ARGS[@]}" \
+  "${WORKDIR_OPTIONS[@]}" \
+  -v "$XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR" \
+  -v "$HOME/.config/nvim:/work/.config/nvim" \
+  "$IMAGE" "${args[@]}"
