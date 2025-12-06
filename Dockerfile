@@ -89,7 +89,8 @@ ENV GOCACHE=/work/.cache/go-build
 RUN mkdir -p /work/go /work/.cache/go-build \
     /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim
 
-RUN git clone -b podman --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
+# TODO: Change to your branch or your own fork
+RUN git clone -b <CHANGE ME> --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 
 RUN nvim --headless \
     -c 'MasonToolsInstallSync' \

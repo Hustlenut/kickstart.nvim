@@ -673,23 +673,9 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
-      local lspconfig = require('lspconfig')
-      local configs = require('lspconfig.configs')
-
-      if not configs.fish_lsp then
-        configs.fish_lsp = {
-          default_config = {
-            cmd = { 'fish-lsp' },  -- assumes binary on PATH
-            filetypes = { 'fish' },
-            root_dir = lspconfig.util.root_pattern('.git'),
-          },
-        }
-      end
-
       local servers = {
-        clangd = {},
-        gopls = {},
-        perlnavigator = {},
+        -- clangd = {},
+        -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -698,17 +684,9 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        ts_ls = {},
-        yamlls = {},
-        jsonls = {},
-        taplo = {},
-        dockerls = {},
-        docker_compose_language_service = {},
-        bashls = {},
-        fish_lsp = {},
-        html = {},
-        cssls = {},
-        yamlls = {},
+        -- ts_ls = {},
+        --
+
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -739,16 +717,14 @@ require('lazy').setup({
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
-      -- print('DEBUG ensure_installed ->', vim.inspect(ensure_installed))
       vim.list_extend(ensure_installed, {
-        'stylua',
-        'prettierd',
+        'stylua', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = true,
+        automatic_installation = false,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -974,7 +950,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'tsx', 'python' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
