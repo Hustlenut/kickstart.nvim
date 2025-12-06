@@ -89,10 +89,11 @@ ENV GOCACHE=/work/.cache/go-build
 RUN mkdir -p /work/go /work/.cache/go-build \
     /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim
 
-RUN git clone -b podman --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
+RUN git clone -b podman-with-lsp --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 
 RUN nvim --headless \
     -c 'MasonToolsInstallSync' \
+    -c 'TSInstallSync c go perl python typescript yaml json toml dockerfile bash fish html css lua' \
     -c 'qa'
 
 RUN chmod -R 777 /work \
