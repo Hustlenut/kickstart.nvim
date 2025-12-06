@@ -91,6 +91,11 @@ RUN mkdir -p /work/go /work/.cache/go-build \
 
 RUN git clone -b podman-with-lsp --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 
+# create SONAME symlink and update ld cache (only if target exists)
+RUN if [ -f /usr/lib/x86_64-linux-gnu/libbfd-2.40-system.so ] && [ ! -f /usr/lib/x86_64-linux-gnu/libbfd-2.38-system.so ]; then \
+      ln -s /usr/lib/x86_64-linux-gnu/libbfd-2.40-system.so /usr/lib/x86_64-linux-gnu/libbfd-2.38-system.so && ldconfig; \
+    fi
+
 RUN nvim --headless \
     -c 'MasonToolsInstallSync' \
     -c 'qa'

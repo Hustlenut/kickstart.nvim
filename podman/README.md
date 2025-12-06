@@ -1,4 +1,4 @@
-# Project README
+# Kickstart.nvim Containerized
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -11,8 +11,11 @@
 ---
 
 ## Introduction
+This project wraps Kickstarter.nvim in a Podman container and aims to have NVIM work offline as well.
+Following things has deviated from the original init.lua:
 
-This project runs Python applications in a containerized environment optimized for compatibility and GUI support. This README covers the rationale behind the base image choice and the necessary host setup to enable X11 graphical forwarding.
+- Disabled auto formatting on save, you have to press 'space + f' to format code.
+- (Python related) Added a custom remote logic for Pylsp to communicate over TCP in a venv.
 
 ## Why Debian Instead of Alpine
 
@@ -59,10 +62,15 @@ pip install "python-lsp-server[all]"
 ⚠️ For PYLSP to work, you need to open NVIM where the '.venv' directory is located.
 
 ## Installation and usage
-Install it on your machine:
+Fork the repository or make a branch in this project.
+Then clone it to the respective path:
 ```
 git clone https://github.com/Hustlenut/kickstart.nvim.git $HOME/.config/nvim-podman
 ```
+Open init.lua and declare your needs (LSPs, treesitter settings... etc).
+⚠️ Then open the ```$HOME/.config/nvim-podman/Dockerfile``` and navigate to the 'TODO' comment.
+    Specify your branch or repository that has your changes to the init.lua file.
+
 Symlink to /usr/bin/ or add the nvim-podman script to your .bashrc:
 ```
 nvim() {
