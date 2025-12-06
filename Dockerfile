@@ -66,6 +66,7 @@ RUN apt-get update \
       xz-utils tar unzip wget \
       build-essential cmake pkg-config \
       wl-clipboard xclip \
+      libunwind8 \
  && update-ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
@@ -85,13 +86,17 @@ ENV XDG_DATA_HOME=/work/.local/share
 ENV XDG_STATE_HOME=/work/.local/state
 ENV GOCACHE=/work/.cache/go-build
 
-# Create shared workspace structure
 RUN mkdir -p /work/go /work/.cache/go-build \
-    /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim \
- && chmod -R 777 /work \
- && chmod -R 755 /opt/nvim /opt/node /opt/go /root/.cargo
+    /work/.config/nvim /work/.local/share/nvim /work/.local/state/nvim
 
-RUN git clone https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
+RUN git clone -b podman --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
+
+RUN nvim --headless \
+    -c 'MasonToolsInstallSync' \
+    -c 'qa'
+
+RUN chmod -R 777 /work \
+ && chmod -R 755 /opt/nvim /opt/node /opt/go /root/.cargo
 
 WORKDIR /work
 
