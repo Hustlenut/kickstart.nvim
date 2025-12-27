@@ -1,0 +1,23 @@
+# ---------- Python Multi-Version Builder ----------
+FROM debian:bookworm-slim
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install build deps, build all Pythons, then remove build deps
+RUN apt-get update \
+	&& buildDeps="curl build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
+	libsqlite3-dev llvm libncursesw5-dev xz-utils tk-dev \
+	libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev" \
+	&& apt-get install -y --no-install-recommends \
+	$buildDeps ca-certificates \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& set -eux; \
+	for ver in 3.9.25 3.10.19 3.11.14 3.12.12 3.13.9 3.14.0; do \
+	curl -fsSL "https://www.python.org/ftp/python/${ver}/Python-${ver}.tgz" | tar xz \
+	&& cd "Python-${ver}" \
+	&& ./configure --enable-optimizations --prefix=/usr --with-ensurepip=install \
+	&& make -j"$(nproc)" && make altinstall \
+	&& cd .. && rm -rf "Python-${ver}"; \
+	done \
+	&& apt-get purge -y --auto-remove $buildDeps \
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

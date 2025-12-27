@@ -673,15 +673,15 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
-      local lspconfig = require('lspconfig')
-      local configs = require('lspconfig.configs')
+      local lspconfig = require 'lspconfig'
+      local configs = require 'lspconfig.configs'
 
       if not configs.fish_lsp then
         configs.fish_lsp = {
           default_config = {
-            cmd = { 'fish-lsp' },  -- assumes binary on PATH
+            cmd = { 'fish-lsp' }, -- assumes binary on PATH
             filetypes = { 'fish' },
-            root_dir = lspconfig.util.root_pattern('.git'),
+            root_dir = lspconfig.util.root_pattern '.git',
           },
         }
       end
@@ -797,7 +797,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        python = { "isort", "black" },
+        python = { 'isort', 'black' },
         typescriptreact = { 'prettierd', 'prettier' },
         typescript = { 'prettierd', 'prettier' },
         --
@@ -971,10 +971,10 @@ require('lazy').setup({
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
+    main = 'nvim-treesitter.config', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'cpp', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python', 'go', 'perl', 'typescript', 'yaml', 'json', 'toml', 'dockerfile', 'fish', 'css' },
+      ensure_installed = {},
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {

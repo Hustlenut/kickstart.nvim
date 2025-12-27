@@ -6,7 +6,9 @@
 - [X11 (i3/Xorg Session)](#x11-i3xorg-session)
   - [One-Time Host Setup](#one-time-host-setup)
 - [Run with Python](#run-with-python)
-- [Usage](#usage)
+-    [Usage](#usage)
+- [Installation and usage](#Installation-and-usage)
+- [Caveats](#Caveats)
 
 ---
 
@@ -81,6 +83,19 @@ nvim() {
 Then run it on a file:
 ```
 nvim <file>
+```
+### Build the Dockerfile manually
+Build the Python image for reusage:
+```
+podman build -f Dockerfile.python -t python-builder
+```
+Then build the nvim image:
+```
+podman build -f Dockerfile -t nvim-podman
+```
+(Optional) When the container is built, run this command to setup nvim-treesitter for offline build.
+```
+:TSInstall bash c cpp diff html lua luadoc markdown markdown_inline query vim vimdoc python go perl typescript yaml json toml dockerfile fish css
 ```
 
 ## Caveats
