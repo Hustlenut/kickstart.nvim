@@ -6,8 +6,8 @@ function M.setup(capabilities)
   local configs = require 'lspconfig.configs'
   local util = require 'lspconfig.util'
 
-  local host = vim.g.pylsp_remote_host or '127.0.0.1'
-  local port = tonumber(vim.g.pylsp_remote_port or 2087) or 2087
+  local host = vim.g.pylsp_remote_host or os.getenv("PYLSP_HOST") or '127.0.0.1'
+  local port = tonumber(vim.g.pylsp_remote_port) or tonumber(os.getenv("PYLSP_PORT")) or 2087
 
   -- Create the transport ONCE (do not wrap in a function)
   local transport = vim.lsp.rpc.connect(host, port)
