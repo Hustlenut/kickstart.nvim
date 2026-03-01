@@ -491,6 +491,8 @@ require('lazy').setup({
 
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
+      'JavaHello/spring-boot.nvim',
+      'mfussenegger/nvim-jdtls',
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -664,6 +666,11 @@ require('lazy').setup({
       local capabilities = require('blink.cmp').get_lsp_capabilities()
       -- ===== Load pylsp-remote integration (TCP to host) =====
       require('custom.pylsp_remote').setup(capabilities)
+
+      local ok, spring_boot = pcall(require, 'spring-boot')
+      if ok then
+        spring_boot.setup {}
+      end
       -- Enable te following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -690,6 +697,14 @@ require('lazy').setup({
         clangd = {},
         gopls = {},
         perlnavigator = {},
+        jdtls = {
+          -- Helps JDTLS find the 'root' of your Maven/Gradle project
+          root_dir = require('lspconfig.util').root_pattern('pom.xml', 'build.gradle', '.git'),
+          cmd = {
+            'jdtls',
+            string.format('--jvm-arg=-javaagent:%s/packages/jdtls/lombok.jar', vim.fn.stdpath 'data' .. '/mason'),
+          },
+        },
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -708,7 +723,6 @@ require('lazy').setup({
         fish_lsp = {},
         html = {},
         cssls = {},
-        yamlls = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -743,7 +757,13 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua',
         'prettierd',
+	'sts4',
       })
+      for i, name in ipairs(ensure_installed) do
+        if name == 'sts4' then
+          ensure_installed[i] = 'vscode-spring-boot-tools'
+        end
+      end
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {

@@ -44,6 +44,13 @@ RUN curl -fsSL -o go.tar.gz \
 	&& rm -f go.tar.gz
 ENV PATH=/opt/go/bin:$PATH
 
+
+# --- Java ---
+RUN wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.6%2B7/OpenJDK21U-jdk_x64_linux_hotspot_21.0.6_7.tar.gz \
+	&& mkdir -p /opt/java \
+	&& tar -xzf OpenJDK21U-jdk_x64_linux_hotspot_21.0.6_7.tar.gz -C /opt/java --strip-components=1 \
+	&& rm OpenJDK21U-jdk_x64_linux_hotspot_21.0.6_7.tar.gz
+
 # --- Rust + Cargo + tree-sitter ---
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
 	&& . /root/.cargo/env \
@@ -103,6 +110,9 @@ RUN set -eux; \
 	ln -sf "/usr/lib/python${major}" "/usr/lib64/python${major}"; \
 	done && ldconfig
 
+# Set 3.13 as default interpreter
+RUN ln -sf /usr/bin/python3.13 /usr/bin/python3
+
 # COPY from stage 1
 COPY --from=bootstrap /opt/nvim /opt/nvim
 COPY --from=bootstrap /opt/node /opt/node
@@ -110,8 +120,14 @@ COPY --from=bootstrap /opt/go /opt/go
 COPY --from=bootstrap /opt/rg /usr/local/bin/rg
 
 COPY --from=bootstrap /root/.cargo/bin/* /usr/local/bin
+COPY --from=bootstrap /opt/java /opt/java
 
-ENV PATH=/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
+RUN ln -sf /opt/java/bin/java /usr/bin/java \
+	&& ln -sf /opt/java/bin/javac /usr/bin/javac \
+	&& ln -sf /opt/java/bin/jar /usr/bin/jar
+
+ENV JAVA_HOME=/opt/java
+ENV PATH=/opt/java/bin:/opt/nvim/bin:/opt/node/bin:/opt/go/bin:/usr/local/bin:$PATH
 
 # Following is intended to be shared with host user
 ENV GOPATH=/work/go
@@ -135,7 +151,7 @@ RUN if [ -f /usr/lib/x86_64-linux-gnu/libbfd-2.40-system.so ] && [ ! -f /usr/lib
 	fi
 
 RUN chmod -R 777 /work \
-	&& chmod -R 755 /opt/nvim /opt/node /opt/go
+	&& chmod -R 755 /opt/nvim /opt/node /opt/go /opt/java
 
 # Lazy sync
 RUN nvim --headless \
