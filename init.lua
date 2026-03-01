@@ -687,9 +687,8 @@ require('lazy').setup({
       end
 
       local servers = {
-        clangd = {},
-        gopls = {},
-        perlnavigator = {},
+        -- clangd = {},
+        -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -698,17 +697,9 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        ts_ls = {},
-        yamlls = {},
-        jsonls = {},
-        taplo = {},
-        dockerls = {},
-        docker_compose_language_service = {},
-        bashls = {},
-        fish_lsp = {},
-        html = {},
-        cssls = {},
-        yamlls = {},
+        -- ts_ls = {},
+        --
+
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -739,16 +730,14 @@ require('lazy').setup({
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
-      -- print('DEBUG ensure_installed ->', vim.inspect(ensure_installed))
       vim.list_extend(ensure_installed, {
-        'stylua',
-        'prettierd',
+        'stylua', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = true,
+        automatic_installation = false,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}

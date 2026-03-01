@@ -127,7 +127,8 @@ RUN mkdir -p /work/go /work/.cache/go-build \
 	/work/.cache/nvim/undo \
 	/work/.local/state/nvim/{swap,backup}
 
-RUN git clone -b podman-with-lsp --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
+# TODO: Change to your branch or your own fork
+RUN git clone -b <CHANGE ME> --single-branch https://github.com/Hustlenut/kickstart.nvim.git "/work/.config/nvim"
 
 # create SONAME symlink and update ld cache (only if target exists)
 RUN if [ -f /usr/lib/x86_64-linux-gnu/libbfd-2.40-system.so ] && [ ! -f /usr/lib/x86_64-linux-gnu/libbfd-2.38-system.so ]; then \
