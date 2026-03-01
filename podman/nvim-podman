@@ -18,7 +18,7 @@ if [ -z "$PODMAN_BIN" ]; then
 fi
 
 # Container image to use (can override via $IMAGE)
-IMAGE="${IMAGE:-localhost/nvim-podman:0.2.1}"
+IMAGE="${IMAGE:-localhost/nvim-podman:0.2.2}"
 
 # -------------------------------------------------------------------
 # Prepare host persistence directories
